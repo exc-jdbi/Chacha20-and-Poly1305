@@ -41,10 +41,14 @@ partial class ChaCha20
     //iv is given to the chipher.
     var iv = FromUI32LastTwo(this.CurrentBlock);
     Array.Copy(iv, 0, result, TAG_SIZE, iv.Length);
+
     var cblockkey = this.ToCBlockKey(counterindexes);
     var tag = ToTag(cblockkey, result, TAG_SIZE, associat);
-
     Array.Copy(tag, result, tag.Length);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+    Array.Clear(counterindexes, 0, counterindexes.Length);
+
     return result;
   }
 
@@ -124,9 +128,6 @@ partial class ChaCha20
     cipherstream.CopyTo(fsout);
   }
 
-  //private static byte[] ToTag(byte[] key, byte[] cipher, byte[]? entropie = null)
-  //  => ToTag(key, cipher, 0, entropie);
-
   private static byte[] ToTag(byte[] key, byte[] cipher, int offset, byte[]? entropie = null)
   {
     var bytes = entropie is not null ? entropie : key;
@@ -135,9 +136,9 @@ partial class ChaCha20
     {
       using var _hmac = new HMACSHA512(key);
       bytes = _hmac.ComputeHash(bytes);
-    }
+    } 
 
-    return ToNewKey(bytes, cipher, offset, TAG_SIZE);
+    return ToNewKey(bytes, cipher, offset, TAG_SIZE); 
   }
 
   private static byte[] ToTag(byte[] key, Stream cipher, byte[]? entropie = null)
@@ -151,7 +152,7 @@ partial class ChaCha20
     }
 
     cipher.Position = TAG_SIZE;
-    return ToNewKey(bytes, cipher, TAG_SIZE);
+    return ToNewKey(bytes, cipher, TAG_SIZE); 
   }
 
   private byte[] ToCBlockKey(uint[] counterindexes)
@@ -159,7 +160,9 @@ partial class ChaCha20
     var cb = this.CurrentBlock.ToArray();
     cb[12] = counterindexes[0];
     cb[13] = counterindexes[1];
-    return FromUI32(cb);
+    var result = FromUI32(cb);
+    Array.Clear(cb, 0, cb.Length);
+    return result;
   }
 
   private byte[] ToAssociated(byte[]? associated)
@@ -170,11 +173,13 @@ partial class ChaCha20
 
     using var md5 = MD5.Create();
     using var hmac = new HMACMD5(k);
-    return hmac.ComputeHash(md5.ComputeHash(associat));
+    var result = hmac.ComputeHash(md5.ComputeHash(associat));
+    Array.Clear(k, 0, k.Length);
+    return result;
   }
 
   private static byte[] ToAssociated()
-  => Encoding.UTF8.GetBytes("ChaCha20 from D.J. Berstein.");
+  => Encoding.UTF8.GetBytes("ChaCha20 from D.J. Bernstein.");
 
 }
 

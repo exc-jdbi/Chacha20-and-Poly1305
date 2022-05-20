@@ -74,7 +74,7 @@ partial class ChaCha20
     cipher.Position = skip;
 
     var stream_length = cipher.Length - skip > int.MaxValue ? int.MaxValue : (int)cipher.Length - skip;
-    var msout = new MemoryStream(stream_length) /*{ Position = TAG_SIZE }*/;
+    var msout = new MemoryStream(stream_length) ;
 
     while ((readlength = cipher.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
     {
@@ -120,8 +120,10 @@ partial class ChaCha20
 
   private static void Verify(byte[] key, byte[] cipher, byte[] associat)
   {
-    var tag = cipher.Take(TAG_SIZE).ToArray();
-    var verify = ToTag(key, cipher, TAG_SIZE, associat).SequenceEqual(tag);
+    var expect = cipher.Take(TAG_SIZE).ToArray();
+    var tag = ToTag(key, cipher, TAG_SIZE, associat);
+    var verify = tag.SequenceEqual(expect);
+    Array.Clear(tag, 0, tag.Length);
     if (verify) return;
 
     throw new CryptographicException(
@@ -131,12 +133,12 @@ partial class ChaCha20
   private static void Verify(byte[] key, Stream cipher, byte[] associat)
   {
     cipher.Position = 0;
-    var tag = new byte[TAG_SIZE];
-    cipher.ChunkReader(tag, 0, tag.Length);
-    cipher.Position = TAG_SIZE + IV_SIZE;
+    var expect = new byte[TAG_SIZE];
+    cipher.ChunkReader(expect, 0, expect.Length); 
 
     cipher.Position = TAG_SIZE;
-    var verify = ToTag(key, cipher, associat).SequenceEqual(tag);
+    var tag = ToTag(key, cipher, associat);
+    var verify = tag.SequenceEqual(expect);
     Array.Clear(tag, 0, tag.Length);
     if (verify) return;
 
