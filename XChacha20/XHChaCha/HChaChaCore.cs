@@ -14,13 +14,11 @@ partial class HChaCha20
 
     for (var i = 0; i < rounds; i += 2)
     {
-      // Odd round
       QR(ref k[0], ref k[4], ref k[8], ref k[12]);
       QR(ref k[1], ref k[5], ref k[9], ref k[13]);
       QR(ref k[2], ref k[6], ref k[10], ref k[14]);
       QR(ref k[3], ref k[7], ref k[11], ref k[15]);
 
-      // Even round                                      
       QR(ref k[0], ref k[5], ref k[10], ref k[15]);
       QR(ref k[1], ref k[6], ref k[11], ref k[12]);
       QR(ref k[2], ref k[7], ref k[8], ref k[13]);

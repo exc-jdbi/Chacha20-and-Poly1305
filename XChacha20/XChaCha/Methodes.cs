@@ -21,7 +21,7 @@ partial class XChaCha20
     if (++this.CurrentBlock[12] == 0) ++this.CurrentBlock[13];
   }
 
-  private byte[] NewIv()
+  private static byte[] NewIv()
   {
     var result = new byte[IV_SIZE];
     CRand.NextBytes(result);

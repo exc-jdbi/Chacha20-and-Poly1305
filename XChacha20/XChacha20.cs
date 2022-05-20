@@ -10,8 +10,7 @@ namespace exc.jdbi.Cryptography;
 public sealed partial class XChaCha20 : HChaCha20
 {
   /// <summary>
-  /// Initializes a new instance of the XChaCha20 class with a provided key.
-  /// An iv (nonce) is created randomly.
+  /// Initializes a new instance of the XChaCha20 class with a provided key and iv.
   /// </summary>
   /// <param name="key">The secret key to use for this instance.</param>
   /// <param name="iv">The iv (nonce) associated with this Instance, which should be a unique value for every operation with the same key.</param>

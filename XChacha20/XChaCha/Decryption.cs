@@ -13,19 +13,22 @@ partial class XChaCha20
   /// buffer if the authentication tag can be validated.
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt.</param>
-  /// <param name="counter_set_one">Initial status for the CurrentBlock is 1.</param>
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
   /// <returns>plaintext as array of bytes</returns>
-  public byte[] Decryption(byte[] cipher, bool counter_set_one)
+  public byte[] Decryption(byte[] cipher, byte[]? associated = null)
   {
-    AssertDecryption(cipher);
+    this.AssertDecryption(cipher);
 
-    if (counter_set_one) this.CounterSetOne();
     var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    var realcipher = cipher.Skip(TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE).ToArray();
+    var realcipher = cipher.Skip(TAG_SIZE + IV_SIZE).ToArray();
     this.SetIv(iv);
 
+    var associat = this.ToAssociated(associated);
     var cblockkey = FromUI32(this.CurrentBlock);
-    Verify(cblockkey, cipher);
+    Verify(cblockkey, cipher, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+
 
     var result = new byte[realcipher.Length];
     for (var i = 0; i < result.Length; i++)
@@ -46,28 +49,29 @@ partial class XChaCha20
   /// stream if the authentication tag can be validated.
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt as stream.</param>
-  /// <param name="counter_set_one">Initial status for the CurrentBlock is 1.</param>
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
   /// <returns>plaintext as stream</returns>
-  public Stream Decryption(Stream cipher, bool counter_set_one)
+  public Stream Decryption(Stream cipher, byte[]? associated = null)
   {
-    AssertDecryption(cipher);
-    if (counter_set_one) this.CounterSetOne();
+    this.AssertDecryption(cipher);
 
     cipher.Position = TAG_SIZE;
     var result = new byte[IV_SIZE];
     cipher.ChunkReader(result, 0, result.Length);
 
     this.SetIv(result);
+    var associat = this.ToAssociated(associated);
     var cblockkey = FromUI32(this.CurrentBlock);
-
-    Verify(cblockkey, cipher);
+    Verify(cblockkey, cipher, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
 
     int readlength;
     Array.Clear(result, 0, result.Length);
     result = Array.Empty<byte>();
     var bufferbytes = new byte[BLOCK_SIZE];
 
-    var skip = TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE;
+    var skip = TAG_SIZE + IV_SIZE;
     cipher.Position = skip;
 
     var stream_length = cipher.Length - skip > int.MaxValue ? int.MaxValue : (int)cipher.Length - skip;
@@ -101,28 +105,26 @@ partial class XChaCha20
   /// </summary>
   /// <param name="srcfilename">Filepath source.</param>
   /// <param name="destfilename">Filepath destination.</param>
-  /// <param name="counter_set_one">Initial status for the CurrentBlock is 1.</param>
-  public void Decryption(string srcfilename, string destfilename, bool counter_set_one)
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
+  public void Decryption(string srcfilename, string destfilename, byte[]? associated = null)
   {
-    AssertDecryption(srcfilename, destfilename);
+    this.AssertDecryption(srcfilename, destfilename);
 
     using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var decipherstream = Decryption(fsinput, counter_set_one);
+    using var decipherstream = this.Decryption(fsinput, associated);
 
     if (File.Exists(destfilename)) File.Delete(destfilename);
-    //using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.Write, FileShare.Delete);
     using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
     decipherstream.Position = 0;
     decipherstream.CopyTo(fsout);
   }
 
-  private static void Verify(byte[] key, byte[] cipher)
+  private static void Verify(byte[] key, byte[] cipher, byte[] associat)
   {
     var tag = cipher.Take(TAG_SIZE).ToArray();
     var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    var associat = cipher.Skip(TAG_SIZE + IV_SIZE).Take(ASSOCIATED_SIZE).ToArray();
-    var realcipher = cipher.Skip(TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE).ToArray();
-    var testcipher = iv.Concat(associat).Concat(realcipher).ToArray();
+    var realcipher = cipher.Skip(TAG_SIZE + IV_SIZE).ToArray();
+    var testcipher = iv.Concat(realcipher).ToArray();
 
     var verify = ToTag(key, testcipher, associat).SequenceEqual(tag);
     Array.Clear(iv, 0, iv.Length);
@@ -136,27 +138,17 @@ partial class XChaCha20
       $"Signature verification has failed!");
   }
 
-  private static void Verify(byte[] key, Stream cipher)
+  private static void Verify(byte[] key, Stream cipher, byte[] associat)
   {
-    //var tag = cipher.Take(TAG_SIZE).ToArray();
-    //var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
     cipher.Position = 0;
     var tag = new byte[TAG_SIZE];
-    var associat = new byte[ASSOCIATED_SIZE];
     cipher.ChunkReader(tag, 0, tag.Length);
     cipher.Position = TAG_SIZE + IV_SIZE;
-    cipher.ChunkReader(associat, 0, associat.Length);
 
-    //var associat = cipher.Skip(TAG_SIZE + IV_SIZE).Take(ASSOCIATED_SIZE).ToArray();
-    //var realcipher = cipher.Skip(TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE).ToArray();
-    //var testcipher = iv.Concat(associat).Concat(realcipher).ToArray();
     cipher.Position = TAG_SIZE;
     var verify = ToTag(key, cipher, associat).SequenceEqual(tag);
-    //Array.Clear(iv, 0, iv.Length);
     Array.Clear(tag, 0, tag.Length);
     Array.Clear(associat, 0, associat.Length);
-    //Array.Clear(realcipher, 0, realcipher.Length);
-    //Array.Clear(testcipher, 0, testcipher.Length);
     if (verify) return;
 
     throw new CryptographicException(
@@ -165,6 +157,7 @@ partial class XChaCha20
 
   private void CounterSetOne()
   {
+    //https://datatracker.ietf.org/doc/html/draft-arciszewski-xchacha-03
     this.CurrentBlock[12] = 1;
     this.CurrentBlock[10] = 0;
   }
