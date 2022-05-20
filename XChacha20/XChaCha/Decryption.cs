@@ -20,7 +20,6 @@ partial class XChaCha20
     this.AssertDecryption(cipher);
 
     var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    var realcipher = cipher.Skip(TAG_SIZE + IV_SIZE).ToArray();
     this.SetIv(iv);
 
     var associat = this.ToAssociated(associated);
@@ -29,8 +28,8 @@ partial class XChaCha20
     Array.Clear(associat, 0, associat.Length);
     Array.Clear(cblockkey, 0, cblockkey.Length);
 
-
-    var result = new byte[realcipher.Length];
+    var offset = TAG_SIZE + IV_SIZE;
+    var result = new byte[cipher.Length - offset];
     for (var i = 0; i < result.Length; i++)
     {
       if (this.Index == 0)
@@ -38,7 +37,7 @@ partial class XChaCha20
         this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
         this.SetCounter();
       }
-      result[i] = (byte)(this.X[this.Index] ^ realcipher[i]);
+      result[i] = (byte)(this.X[this.Index] ^ cipher[i + offset]);
       this.Index = (this.Index + 1) & 63;
     }
     return result;
@@ -121,44 +120,30 @@ partial class XChaCha20
 
   private static void Verify(byte[] key, byte[] cipher, byte[] associat)
   {
-    var tag = cipher.Take(TAG_SIZE).ToArray();
-    var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    var realcipher = cipher.Skip(TAG_SIZE + IV_SIZE).ToArray();
-    var testcipher = iv.Concat(realcipher).ToArray();
-
-    var verify = ToTag(key, testcipher, associat).SequenceEqual(tag);
-    Array.Clear(iv, 0, iv.Length);
+    var expect = cipher.Take(TAG_SIZE).ToArray();
+    var tag = ToTag(key, cipher, TAG_SIZE, associat);
+    var verify = tag.SequenceEqual(expect);
     Array.Clear(tag, 0, tag.Length);
-    Array.Clear(associat, 0, associat.Length);
-    Array.Clear(realcipher, 0, realcipher.Length);
-    Array.Clear(testcipher, 0, testcipher.Length);
     if (verify) return;
 
     throw new CryptographicException(
       $"Signature verification has failed!");
   }
+
 
   private static void Verify(byte[] key, Stream cipher, byte[] associat)
   {
     cipher.Position = 0;
-    var tag = new byte[TAG_SIZE];
-    cipher.ChunkReader(tag, 0, tag.Length);
-    cipher.Position = TAG_SIZE + IV_SIZE;
+    var expect = new byte[TAG_SIZE];
+    cipher.ChunkReader(expect, 0, expect.Length);
 
     cipher.Position = TAG_SIZE;
-    var verify = ToTag(key, cipher, associat).SequenceEqual(tag);
+    var tag = ToTag(key, cipher, associat);
+    var verify = tag.SequenceEqual(expect);
     Array.Clear(tag, 0, tag.Length);
-    Array.Clear(associat, 0, associat.Length);
     if (verify) return;
 
     throw new CryptographicException(
       $"Signature verification has failed!");
-  }
-
-  private void CounterSetOne()
-  {
-    //https://datatracker.ietf.org/doc/html/draft-arciszewski-xchacha-03
-    this.CurrentBlock[12] = 1;
-    this.CurrentBlock[10] = 0;
   }
 }

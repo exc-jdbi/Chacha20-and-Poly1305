@@ -42,6 +42,9 @@ partial class XChaCha20
     Array.Copy(this.MIv, 0, result, TAG_SIZE, this.MIv.Length);
     var cblockkey = this.ToCBlockKey(counterindexes);
     var tag = ToTag(cblockkey, result, TAG_SIZE, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+    Array.Clear(counterindexes, 0, counterindexes.Length);
 
     Array.Copy(tag, result, tag.Length);
     return result;
@@ -100,6 +103,8 @@ partial class XChaCha20
     Array.Clear(associat, 0, associat.Length);
     Array.Clear(cblockkey, 0, cblockkey.Length);
     Array.Clear(bufferbytes, 0, bufferbytes.Length);
+    Array.Clear(counterindexes, 0, counterindexes.Length);
+
     msout.Position = 0;
     msout.Write(tag);
     return msout;
@@ -123,21 +128,7 @@ partial class XChaCha20
     if (File.Exists(destfilename)) File.Delete(destfilename);
     using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
     cipherstream.Position = 0;
-    cipherstream.CopyTo(fsout);
-
-  }
-
-  private static byte[] ToTag(byte[] key, byte[] cipher, byte[]? entropie = null)
-  {
-    var bytes = entropie is not null ? entropie : key;
-
-    if (entropie is not null)
-    {
-      using var _hmac = new HMACSHA512(key);
-      bytes = _hmac.ComputeHash(bytes);
-    }
-
-    return ToNewKey(bytes, cipher, TAG_SIZE);
+    cipherstream.CopyTo(fsout); 
   }
 
   private static byte[] ToTag(byte[] key, byte[] cipher, int offset, byte[]? entropie = null)
@@ -150,7 +141,7 @@ partial class XChaCha20
       bytes = _hmac.ComputeHash(bytes);
     }
 
-    return ToNewKey(bytes, cipher, offset, TAG_SIZE);
+    return ToNewKey(bytes, cipher,offset, TAG_SIZE); 
   }
 
   private static byte[] ToTag(byte[] key, Stream cipher, byte[]? entropie = null)
@@ -164,7 +155,7 @@ partial class XChaCha20
     }
 
     cipher.Position = TAG_SIZE;
-    return ToNewKey(bytes, cipher, TAG_SIZE);
+    return ToNewKey(bytes, cipher, TAG_SIZE); 
   }
 
   private byte[] ToCBlockKey(uint[] counterindexes)
@@ -172,7 +163,9 @@ partial class XChaCha20
     var cb = this.CurrentBlock.ToArray();
     cb[12] = counterindexes[0];
     cb[13] = counterindexes[1];
-    return FromUI32(cb);
+    var result = FromUI32(cb);
+    Array.Clear(cb, 0, cb.Length);
+    return result;
   }
 
   private byte[] ToAssociated(byte[]? associated)
@@ -183,11 +176,12 @@ partial class XChaCha20
 
     using var md5 = MD5.Create();
     using var hmac = new HMACMD5(k);
-    return hmac.ComputeHash(md5.ComputeHash(associat));
+    var result = hmac.ComputeHash(md5.ComputeHash(associat));
+    Array.Clear(k, 0, k.Length);
+    return result;
   }
 
   private static byte[] ToAssociated()
   => Encoding.UTF8.GetBytes("Modified ChaCha20 from D.J. Berstein.");
-
 
 }
