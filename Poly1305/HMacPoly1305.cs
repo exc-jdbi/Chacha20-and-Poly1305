@@ -15,7 +15,8 @@ public partial class HMacPoly1305 : IDisposable
 {
 
   /// <summary>
-  /// Initializes a new instance of the HMacPoly1305 class with the specified key data.
+  /// Initializes a new instance of the HMacPoly1305 class 
+  /// with the specified key data.
   /// </summary>
   /// <param name="key">
   /// The secret key for HMacPoly1305 encryption. 
@@ -41,7 +42,8 @@ public partial class HMacPoly1305 : IDisposable
   }
 
   /// <summary>
-  /// Releases all resources used by the current instance of the HMacPoly1305 class.
+  /// Releases all resources used by the current 
+  /// instance of the HMacPoly1305 class.
   /// </summary>
   public void Dispose()
   {

@@ -3,7 +3,6 @@ namespace exc.jdbi.Cryptography;
 
 partial class HMacPoly1305
 {
-
   private void AssertNewInit(byte[] key)
   {
     if (this.IsDisposed)

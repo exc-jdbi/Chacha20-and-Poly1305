@@ -17,10 +17,10 @@ partial class HMacPoly1305
         this.CurrentBlockOffset = 0;
       }
 
-      var toCopy = Math.Min(length - copied, BLOCK_SIZE - this.CurrentBlockOffset);
-      Array.Copy(bytes, copied, this.CurrentBlock, this.CurrentBlockOffset, toCopy);
-      copied += toCopy;
-      this.CurrentBlockOffset += toCopy;
+      var tocopy = Math.Min(length - copied, BLOCK_SIZE - this.CurrentBlockOffset);
+      Array.Copy(bytes, copied, this.CurrentBlock, this.CurrentBlockOffset, tocopy);
+      copied += tocopy;
+      this.CurrentBlockOffset += tocopy;
     }
   }
 
@@ -29,10 +29,7 @@ partial class HMacPoly1305
     var result = new byte[HASH_SIZE];
 
     if (this.CurrentBlockOffset > 0)
-    {
-      // Process padded block
       this.ProcessBlock();
-    }
 
     this.H[1] += this.H[0] >> 26; this.H[0] &= 0x3ffffff;
     this.H[2] += this.H[1] >> 26; this.H[1] &= 0x3ffffff;
