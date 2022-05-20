@@ -1,6 +1,6 @@
 ﻿
-using System.Diagnostics;
 using exc.jdbi.Cryptography;
+using System.Diagnostics;
 
 namespace ChaCha20Poly1305Test;
 
@@ -25,7 +25,6 @@ internal class UnitTestPoly1305
     Console.WriteLine();
   }
 
-
   private static void Test_HmacPoly1305(int round)
   {
     Console.Write($"{nameof(Test_HmacPoly1305)} ");
@@ -40,7 +39,12 @@ internal class UnitTestPoly1305
       var bytes = RngBytes(size);
 
       using var hmac = new HMacPoly1305(key);
-      var hash = hmac.ComputeHash(bytes);
+      var hash1 = hmac.ComputeHash(bytes);
+      var hash2 = hmac.ComputeHash(bytes);
+
+      //Note: The hashvalues are always the same here.
+      if (!hash1.SequenceEqual(hash2))
+        Debugger.Break();
 
       if (i % 1000 == 0) Console.Write(".");
     }
@@ -93,7 +97,7 @@ internal class UnitTestPoly1305
       var bytes = RngBytes(size);
 
       using (var fsoutput = new FileStream(srcfilename, FileMode.Create, FileAccess.Write))
-        fsoutput.Write(bytes, 0, bytes.Length); 
+        fsoutput.Write(bytes, 0, bytes.Length);
 
       using var hmac = new HMacPoly1305(key);
       var hash = hmac.ComputeHash(bytes);
@@ -114,5 +118,5 @@ internal class UnitTestPoly1305
 
     Console.WriteLine($" t = {sw.ElapsedMilliseconds}ms; r = {round}; size = {size}");
     Console.WriteLine();
-  } 
+  }
 }

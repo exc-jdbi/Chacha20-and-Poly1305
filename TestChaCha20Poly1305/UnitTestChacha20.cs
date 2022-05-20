@@ -93,7 +93,6 @@ internal class UnitTestChacha20
     //D.h. Key und Iv können als Schlüssel komplett
     //ausgenutzt werden.
 
-    //Key and Iv can be completely exploited as keys.
     //The same ChaCha20 instance is used over a very long distance.
     //The CurrentBlock is always incremented by 1.
     //I.e. Key and Iv (nonce) can be completely exploited as keys.
@@ -170,7 +169,8 @@ internal class UnitTestChacha20
       //No IV needs to be supplied.
       //IV is included in the cipher. 
       using var cc202 = new ChaCha20(key);
-      var decipher = cc202.Decryption(cipher);
+      //Now associated must also be given.
+      var decipher = cc202.Decryption(cipher, associated);
 
       if (!plain.SequenceEqual(decipher))
         Debugger.Break();
@@ -178,9 +178,6 @@ internal class UnitTestChacha20
       using var cc201s = new ChaCha20(key, iv);
       using var plainstream = new MemoryStream(plain);
       using var cipherstream = cc201s.Encryption(plainstream);
-
-      //if (!EqualsCipherTest(cipherstream, cipher))
-      //  Debugger.Break();
 
       using var cc202s = new ChaCha20(key);
       using var decipherstream = cc202s.Decryption(cipherstream);
@@ -328,31 +325,5 @@ internal class UnitTestChacha20
     var result = sha1.ComputeHash(s1).SequenceEqual(sha2.ComputeHash(s2));
     return result;
   }
-
-  //private static bool EqualsCipherTest(Stream s1, byte[] b1)
-  //{
-  //  for (var i = 40; i < b1.Length; i++)
-  //  {
-  //    s1.Position = i;
-  //    var i1 = (byte)s1.ReadByte();
-  //    if (b1[i] != i1) return false;
-  //  }
-  //  return true;
-  //}
 }
 
-
-
-//private static byte[][] TestKey()
-//{
-//  var result = new byte[57][];
-//  for (var j = 0; j < 100000; j++)
-//    for (var i = 8; i < 65; i++)
-//    {
-//      //if (i == 64) Debugger.Break();
-//      var key = RngBytes(32);
-//      var bytes = RngBytes(Rand.Next(10, 128));
-//      result[i - 8] = ToNewKey(key, bytes, i);
-//    }
-//  return result;
-//}

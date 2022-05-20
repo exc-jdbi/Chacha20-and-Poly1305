@@ -55,7 +55,7 @@ internal class UnitTestXChacha20
       //All plains have the same iv, but not
       //the same CurrentBlock.
       //The CurrentBlock is always incremented by 1.
-      ciphers[i] = cc201.Encryption(plain, false);
+      ciphers[i] = cc201.Encryption(plain);
 
       if (i % 1000 == 0) Console.Write(".");
     }
@@ -69,7 +69,7 @@ internal class UnitTestXChacha20
 
     for (var i = 0; i < rounds; i++)
     {
-      var plain = cc202.Decryption(ciphers[i], false);
+      var plain = cc202.Decryption(ciphers[i]);
 
       var expect = Enumerable.Range(start, plain.Length)
         .Select(x => (byte)x).ToArray();
@@ -115,7 +115,7 @@ internal class UnitTestXChacha20
 
       //Set new iv for each plain.
       //The CurrentBlock is nevertheless always incremented by 1.
-      ciphers[i] = cc201.Encryption(plain, false, null, true);
+      ciphers[i] = cc201.Encryption(plain, null, true);
 
       if (i % 1000 == 0) Console.Write(".");
     }
@@ -129,7 +129,7 @@ internal class UnitTestXChacha20
 
     for (var i = 0; i < rounds; i++)
     {
-      var plain = cc202.Decryption(ciphers[i], false);
+      var plain = cc202.Decryption(ciphers[i]);
 
       var expect = Enumerable.Range(start, plain.Length)
         .Select(x => (byte)x).ToArray();
@@ -161,22 +161,24 @@ internal class UnitTestXChacha20
 
       //IV is supplied here.
       using var cc201 = new XChaCha20(key, iv);
-      var cipher = cc201.Encryption(plain, false, associated);
+      var cipher = cc201.Encryption(plain, associated);
 
       //No IV needs to be supplied.
       //IV is included in the cipher. 
       using var cc202 = new XChaCha20(key);
-      var decipher = cc202.Decryption(cipher, false);
+
+      //Now associated must also be given.
+      var decipher = cc202.Decryption(cipher, associated);
 
       if (!plain.SequenceEqual(decipher))
         Debugger.Break();
 
       using var cc201s = new XChaCha20(key, iv);
       using var plainstream = new MemoryStream(plain);
-      using var cipherstream = cc201s.Encryption(plainstream, false);
+      using var cipherstream = cc201s.Encryption(plainstream);
 
       using var cc202s = new XChaCha20(key);
-      using var decipherstream = cc202s.Decryption(cipherstream, false);
+      using var decipherstream = cc202s.Decryption(cipherstream);
 
       if (!EqualsStream(decipherstream, plainstream))
         Debugger.Break();
@@ -206,12 +208,12 @@ internal class UnitTestXChacha20
 
       //An IV is supplied here.
       using var cc201 = new XChaCha20(key, iv);
-      cc201.Encryption(srcfilename, dstfilename, false);
+      cc201.Encryption(srcfilename, dstfilename);
 
       //No IV needs to be supplied.
       //IV is included in the cipher. 
       using var cc202 = new XChaCha20(key);
-      cc202.Decryption(dstfilename, decfilename, false);
+      cc202.Decryption(dstfilename, decfilename);
 
       if (!EqualsFile(srcfilename, decfilename))
         Debugger.Break();
@@ -251,7 +253,7 @@ internal class UnitTestXChacha20
     using var cc201 = new XChaCha20(key);//, iv
     Console.Write(".");
 
-    cc201.Encryption(srcfilename, dstfilename, false);
+    cc201.Encryption(srcfilename, dstfilename);
     Console.Write(".");
 
     //No IV needs to be supplied.
@@ -259,7 +261,7 @@ internal class UnitTestXChacha20
     using var cc202 = new XChaCha20(key);
     Console.Write(".");
 
-    cc202.Decryption(dstfilename, decfilename, false);
+    cc202.Decryption(dstfilename, decfilename);
     Console.Write(".");
 
     if (!EqualsFile(srcfilename, decfilename))

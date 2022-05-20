@@ -1,16 +1,16 @@
-﻿
-
-using System.Diagnostics; 
+﻿using System.Diagnostics;
 
 namespace ChaCha20Poly1305Test;
- 
+
 
 public class Program
 {
   public static void Main()
-  { 
+  {
 
     var sw = Stopwatch.StartNew();
+
+    //UnitTestCMemory.StartUnitTest();
 
     UnitTestChacha20.StartUnitTest();
     UnitTestXChacha20.StartUnitTest();
