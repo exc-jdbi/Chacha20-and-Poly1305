@@ -14,18 +14,22 @@ partial class ChaCha20
   /// buffer if the authentication tag can be validated.
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt.</param>
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
   /// <returns>plaintext as array of bytes</returns>
-  public byte[] Decryption(byte[] cipher)
+  public byte[] Decryption(byte[] cipher, byte[]? associated = null)
   {
-    AssertDecryption(cipher);
-    var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    ToUI32s(iv, 0, this.CurrentBlock, 14, 2);
+    this.AssertDecryption(cipher);
+    ToUI32s(cipher, TAG_SIZE, this.CurrentBlock, 14, 2);
     var cblockkey = FromUI32(this.CurrentBlock);
+    var associat = this.ToAssociated(associated);
 
-    Verify(cblockkey, cipher);
-    var realcipher = cipher.Skip(TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE).ToArray();
+    Verify(cblockkey, cipher, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, associat.Length);
 
-    var result = new byte[realcipher.Length];
+    var offset = TAG_SIZE + IV_SIZE;
+    var realcipherlength = cipher.Length - offset;
+    var result = new byte[realcipherlength];
     for (var i = 0; i < result.Length; i++)
     {
       if (this.Index == 0)
@@ -33,7 +37,7 @@ partial class ChaCha20
         this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
         this.SetCounter();
       }
-      result[i] = (byte)(this.X[this.Index] ^ realcipher[i]);
+      result[i] = (byte)(this.X[this.Index] ^ cipher[i + offset]);
       this.Index = (this.Index + 1) & 63;
     }
     return result;
@@ -44,26 +48,31 @@ partial class ChaCha20
   /// stream if the authentication tag can be validated.
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt as stream.</param>
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
   /// <returns>plaintext as stream</returns>
-  public Stream Decryption(Stream cipher)
+  public Stream Decryption(Stream cipher, byte[]? associated = null)
   {
-    AssertDecryption(cipher);
+    this.AssertDecryption(cipher);
 
     cipher.Position = TAG_SIZE;
     var result = new byte[IV_SIZE];
     cipher.ChunkReader(result, 0, result.Length);
     ToUI32s(result, 0, this.CurrentBlock, 14, 2);
-    var cblockkey = FromUI32(this.CurrentBlock);
 
-    Verify(cblockkey, cipher);
+    var associat = this.ToAssociated(associated);
+    var cblockkey = FromUI32(this.CurrentBlock);
+    Verify(cblockkey, cipher, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, associat.Length);
 
     int readlength;
     Array.Clear(result, 0, result.Length);
     result = Array.Empty<byte>();
-    var bufferbytes = new byte[BLOCK_SIZE];
-    cipher.Position = TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE;
 
-    var skip = TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE;
+    var bufferbytes = new byte[BLOCK_SIZE];
+    var skip = TAG_SIZE + IV_SIZE;
+    cipher.Position = skip;
+
     var stream_length = cipher.Length - skip > int.MaxValue ? int.MaxValue : (int)cipher.Length - skip;
     var msout = new MemoryStream(stream_length) /*{ Position = TAG_SIZE }*/;
 
@@ -95,53 +104,40 @@ partial class ChaCha20
   /// </summary>
   /// <param name="srcfilename">Filepath source.</param>
   /// <param name="destfilename">Filepath destination.</param>
-  public void Decryption(string srcfilename, string destfilename)
+  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
+  public void Decryption(string srcfilename, string destfilename, byte[]? associated = null)
   {
-    AssertDecryption(srcfilename, destfilename);
+    this.AssertDecryption(srcfilename, destfilename);
 
     using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var decipherstream = Decryption(fsinput);
+    using var decipherstream = this.Decryption(fsinput, associated);
 
     if (File.Exists(destfilename)) File.Delete(destfilename);
-    //using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.Write, FileShare.Delete);
     using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
     decipherstream.Position = 0;
     decipherstream.CopyTo(fsout);
   }
 
-  private static void Verify(byte[] key, byte[] cipher)
+  private static void Verify(byte[] key, byte[] cipher, byte[] associat)
   {
     var tag = cipher.Take(TAG_SIZE).ToArray();
-    var iv = cipher.Skip(TAG_SIZE).Take(IV_SIZE).ToArray();
-    var associat = cipher.Skip(TAG_SIZE + IV_SIZE).Take(ASSOCIATED_SIZE).ToArray();
-    var realcipher = cipher.Skip(TAG_SIZE + ASSOCIATED_SIZE + IV_SIZE).ToArray();
-    var testcipher = iv.Concat(associat).Concat(realcipher).ToArray();
-
-    var verify = ToTag(key, testcipher, associat).SequenceEqual(tag);
-    Array.Clear(iv, 0, iv.Length);
-    Array.Clear(tag, 0, tag.Length);
-    Array.Clear(associat, 0, associat.Length);
-    Array.Clear(realcipher, 0, realcipher.Length);
-    Array.Clear(testcipher, 0, testcipher.Length);
+    var verify = ToTag(key, cipher, TAG_SIZE, associat).SequenceEqual(tag);
     if (verify) return;
 
     throw new CryptographicException(
       $"Signature verification has failed!");
   }
 
-  private static void Verify(byte[] key, Stream cipher)
+  private static void Verify(byte[] key, Stream cipher, byte[] associat)
   {
     cipher.Position = 0;
     var tag = new byte[TAG_SIZE];
-    var associat = new byte[ASSOCIATED_SIZE];
     cipher.ChunkReader(tag, 0, tag.Length);
     cipher.Position = TAG_SIZE + IV_SIZE;
-    cipher.ChunkReader(associat, 0, associat.Length);
 
     cipher.Position = TAG_SIZE;
     var verify = ToTag(key, cipher, associat).SequenceEqual(tag);
     Array.Clear(tag, 0, tag.Length);
-    Array.Clear(associat, 0, associat.Length);
     if (verify) return;
 
     throw new CryptographicException(

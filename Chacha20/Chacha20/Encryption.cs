@@ -1,12 +1,12 @@
 ﻿
 
+using System.Text;
 using System.Security.Cryptography;
 
 namespace exc.jdbi.Cryptography;
 
 using static Converts.Convert;
 using static Extensions.StreamExtensions;
-using static Randoms.CryptoRandom;
 
 partial class ChaCha20
 {
@@ -19,12 +19,13 @@ partial class ChaCha20
   /// <returns>ciphertext as array of byte</returns>
   public byte[] Encryption(byte[] plain, byte[]? associated = null)
   {
-    AssertEncryption(plain, associated);
-    var associat = associated is null ? RngBytes(ASSOCIATED_SIZE) : ToAssociated(associated);
+    this.AssertEncryption(plain, associated);
+    var associat = this.ToAssociated(associated);
     var counterindexes = new[] { this.CurrentBlock[12], this.CurrentBlock[13] };
 
-    var result = new byte[plain.Length];
-    for (var i = 0; i < result.Length; i++)
+    var offset = TAG_SIZE + IV_SIZE;
+    var result = new byte[plain.Length + offset];
+    for (var i = 0; i < result.Length - offset; i++)
     {
       if (this.Index == 0)
       {
@@ -33,23 +34,18 @@ partial class ChaCha20
         this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
         this.SetCounter();
       }
-      result[i] = (byte)(this.X[this.Index] ^ plain[i]);
+      result[i + offset] = (byte)(this.X[this.Index] ^ plain[i]);
       this.Index = (this.Index + 1) & 63;
     }
 
     //iv is given to the chipher.
     var iv = FromUI32LastTwo(this.CurrentBlock);
+    Array.Copy(iv, 0, result, TAG_SIZE, iv.Length);
+    var cblockkey = this.ToCBlockKey(counterindexes);
+    var tag = ToTag(cblockkey, result, TAG_SIZE, associat);
 
-    //Normally the 'associateddata' are not integrated into the cipher.
-    //For this example project, however, I have now done so. :-)
-    var precipher = iv.Concat(associat).Concat(result).ToArray();
-    var cblockkey = ToCBlockKey(counterindexes);
-    var tag = ToTag(cblockkey, precipher, associat);
-    var cipher = tag.Concat(precipher).ToArray();
-    Array.Clear(cblockkey, 0, cblockkey.Length);
-    Array.Clear(precipher, 0, precipher.Length);
-    Array.Clear(counterindexes, 0, counterindexes.Length);
-    return cipher;
+    Array.Copy(tag, result, tag.Length);
+    return result;
   }
 
   /// <summary>
@@ -61,25 +57,20 @@ partial class ChaCha20
   /// <returns>ciphertext as stream</returns>
   public Stream Encryption(Stream plain, byte[]? associated = null)
   {
-    AssertEncryption(plain, associated);
+    this.AssertEncryption(plain, associated);
 
-    var associat = associated is null ? RngBytes(ASSOCIATED_SIZE) : ToAssociated(associated);
+    var associat = this.ToAssociated(associated);
     var counterindexes = new[] { this.CurrentBlock[12], this.CurrentBlock[13] };
 
     var stream_length = plain.Length > int.MaxValue ? int.MaxValue : (int)plain.Length;
     var msout = new MemoryStream(stream_length) { Position = TAG_SIZE };
     msout.Write(FromUI32LastTwo(this.CurrentBlock)); //set iv
 
-    //Normally the 'associateddata' are not integrated into the cipher.
-    //For this example project, however, I have now done so. :-)
-    msout.Write(associat);
-
     int readlength;
     var result = Array.Empty<byte>();
     var bufferbytes = new byte[BLOCK_SIZE];
 
-    //Not the fastest variant, but it work.
-    //Unmanaged is even faster.
+    //Not the fastest variant, but it work. 
     while ((readlength = plain.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
     {
       if (result.Length != readlength)
@@ -100,12 +91,16 @@ partial class ChaCha20
       msout.Write(result);
     }
 
-    var cblockkey = ToCBlockKey(counterindexes);
+    var cblockkey = this.ToCBlockKey(counterindexes);
     msout.Position = TAG_SIZE;
     var tag = ToTag(cblockkey, msout, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+    Array.Clear(bufferbytes, 0, bufferbytes.Length);
+    Array.Clear(counterindexes, 0, counterindexes.Length);
+
     msout.Position = 0;
     msout.Write(tag);
-
     return msout;
   }
 
@@ -118,19 +113,21 @@ partial class ChaCha20
   /// <param name="associated">Extra data associated with this message, which must also be provided during decryption.</param>
   public void Encryption(string srcfilename, string destfilename, byte[]? associated = null)
   {
-    AssertEncryption(srcfilename, destfilename, associated);
+    this.AssertEncryption(srcfilename, destfilename, associated);
 
     using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var cipherstream = Encryption(fsinput, associated);
+    using var cipherstream = this.Encryption(fsinput, associated);
 
     if (File.Exists(destfilename)) File.Delete(destfilename);
     using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
     cipherstream.Position = 0;
     cipherstream.CopyTo(fsout);
-
   }
 
-  private static byte[] ToTag(byte[] key, byte[] cipher, byte[]? entropie = null)
+  //private static byte[] ToTag(byte[] key, byte[] cipher, byte[]? entropie = null)
+  //  => ToTag(key, cipher, 0, entropie);
+
+  private static byte[] ToTag(byte[] key, byte[] cipher, int offset, byte[]? entropie = null)
   {
     var bytes = entropie is not null ? entropie : key;
 
@@ -140,7 +137,7 @@ partial class ChaCha20
       bytes = _hmac.ComputeHash(bytes);
     }
 
-    return ToNewKey(bytes, cipher, TAG_SIZE);
+    return ToNewKey(bytes, cipher, offset, TAG_SIZE);
   }
 
   private static byte[] ToTag(byte[] key, Stream cipher, byte[]? entropie = null)
@@ -155,7 +152,7 @@ partial class ChaCha20
 
     cipher.Position = TAG_SIZE;
     return ToNewKey(bytes, cipher, TAG_SIZE);
-  } 
+  }
 
   private byte[] ToCBlockKey(uint[] counterindexes)
   {
@@ -165,13 +162,20 @@ partial class ChaCha20
     return FromUI32(cb);
   }
 
-  private static byte[] ToAssociated(byte[] associated)
+  private byte[] ToAssociated(byte[]? associated)
   {
-    //Simple and fast.
-    var md5 = MD5.Create();
-    var hmac = new HMACMD5(associated);
-    return hmac.ComputeHash(md5.ComputeHash(associated));
+    //Simple and fast. Return Length = 16.
+    var k = FromUI32(this.CurrentBlock.ToArray());
+    var associat = associated is null ? ToAssociated() : associated;
+
+    using var md5 = MD5.Create();
+    using var hmac = new HMACMD5(k);
+    return hmac.ComputeHash(md5.ComputeHash(associat));
   }
+
+  private static byte[] ToAssociated()
+  => Encoding.UTF8.GetBytes("ChaCha20 from D.J. Berstein.");
+
 }
 
 

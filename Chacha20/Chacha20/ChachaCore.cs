@@ -11,13 +11,11 @@ partial class ChaCha20
 
     for (var i = 0; i < rounds; i += 2)
     {
-      // Odd round
       QR(ref result[0], ref result[4], ref result[8], ref result[12]);
       QR(ref result[1], ref result[5], ref result[9], ref result[13]);
       QR(ref result[2], ref result[6], ref result[10], ref result[14]);
       QR(ref result[3], ref result[7], ref result[11], ref result[15]);
 
-      // Even round                                      
       QR(ref result[0], ref result[5], ref result[10], ref result[15]);
       QR(ref result[1], ref result[6], ref result[11], ref result[12]);
       QR(ref result[2], ref result[7], ref result[8], ref result[13]);

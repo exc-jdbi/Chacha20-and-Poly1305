@@ -23,10 +23,6 @@ partial class ChaCha20
     if (++this.CurrentBlock[12] == 0) ++this.CurrentBlock[13];
   }
 
-  //private void ResetCounter()
-  // => this.CurrentBlock[12] = this.CurrentBlock[13] = 0;
-
-
   private static uint[] ToTauSigma()
   //Proposed by Prof. D.J. Bernstein
   => ToUI32s(Encoding.ASCII.GetBytes("expand 32-byte k"), 0, 4);

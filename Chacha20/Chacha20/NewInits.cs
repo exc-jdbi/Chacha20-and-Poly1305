@@ -27,7 +27,7 @@ partial class ChaCha20
   /// <param name="tau_sigma">Default: Null.</param>
   public void NewInit(byte[] key, byte[] iv, int round = 20, byte[]? tau_sigma = null)
   {
-    AssertNewInit(key, iv, tau_sigma, round);
+    this.AssertNewInit(key, iv, tau_sigma, round);
     this.Clear();
 
     this.Index = 0;

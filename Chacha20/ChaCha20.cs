@@ -3,6 +3,7 @@ namespace exc.jdbi.Cryptography;
 
 /// <summary>
 /// <para>Implementation of Daniel J. Bernstein's ChaCha20 stream cipher.</para>
+/// <see href="http://cr.yp.to/chacha.html"></see>
 /// <see href="https://cr.yp.to/chacha/chacha-20080128.pdf"></see>
 /// <para>further modified by © exc-jdbi 2022</para>
 /// </summary>

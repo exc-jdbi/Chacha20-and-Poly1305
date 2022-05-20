@@ -19,7 +19,7 @@ partial class ChaCha20
 
     if (iv is null || iv.Length != IV_SIZE)
       throw new ArgumentOutOfRangeException(nameof(iv),
-        $"Key.Length must be {IV_SIZE}");
+        $"Iv.Length must be {IV_SIZE}");
 
     if (tau_sigma is null) return;
 
@@ -98,7 +98,7 @@ partial class ChaCha20
     if (cipher is null)
       throw new ArgumentNullException(nameof(cipher));
 
-    //Real Cipher.Length is Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE
+    //Real Cipher.Length is >>  Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE
     if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE)))
       throw new ArgumentOutOfRangeException(nameof(cipher),
         "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
@@ -112,7 +112,7 @@ partial class ChaCha20
     if (cipher is null)
       throw new ArgumentNullException(nameof(cipher));
 
-    //Real Cipher.Length is Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE
+    //Real Cipher.Length is >> Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE
     if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE)))
       throw new ArgumentOutOfRangeException(nameof(cipher),
         "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
