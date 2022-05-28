@@ -1,7 +1,5 @@
 ﻿
 
-using System.Text;
-
 namespace exc.jdbi.Cryptography;
 
 using exc.jdbi.Extensions;
@@ -53,7 +51,7 @@ partial class ChaCha20Poly1305Ex
     var tmp = new byte[16];
     Array.Copy(FromUI64((ulong)aad.LongLength), tmp, 8);
     Array.Copy(FromUI64((ulong)plain.LongLength), 0, tmp, 8, 8);
-    this.Update(tmp,0);
+    this.Update(tmp, 0);
 
     var tag = this.ToTag();
     Array.Copy(this.MIv, 0, result, TAG_SIZE, this.MIv.Length);

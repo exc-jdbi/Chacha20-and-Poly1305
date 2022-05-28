@@ -24,14 +24,14 @@ partial class ChaCha20Poly1305Ex
     if (!iv.SequenceEqual(this.MIv))
       this.NewInit(this.MKey.ToArray(), iv);
 
-    this.Update(aad,0);
+    this.Update(aad, 0);
     this.Update(cipher, offset);
     long realcipherlength = cipher.Length - offset;
 
     var tmp = new byte[16];
     Array.Copy(FromUI64((ulong)aad.LongLength), tmp, 8);
     Array.Copy(FromUI64((ulong)realcipherlength), 0, tmp, 8, 8);
-    this.Update(tmp,0);
+    this.Update(tmp, 0);
     Verify(cipher);
 
     int bsize = 4 * BLOCK_SIZE;
@@ -44,7 +44,7 @@ partial class ChaCha20Poly1305Ex
       while ((readlength = cipher.ChunkReader(bufferbytes, offset, bufferbytes.Length)) != 0)
       {
         if (readlength != bufferbytes.Length)
-          Array.Resize(ref bufferbytes, readlength); 
+          Array.Resize(ref bufferbytes, readlength);
 
         cblock = this.MChaCha20.Next_Bytes();
 
