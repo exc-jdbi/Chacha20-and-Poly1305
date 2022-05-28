@@ -22,7 +22,7 @@ partial class ChaCha20Poly1305Ex
     //Must be traversed for a counter check.
     AssertEncryption(plain, aad);
 
-    this.Update(aad);
+    this.Update(aad, 0);
 
     int readlength, offset = 0;
     int bsize = 4 * BLOCK_SIZE;
@@ -31,29 +31,29 @@ partial class ChaCha20Poly1305Ex
     byte[] result = new byte[poffset + plain.Length];
     var bufferbytes = new byte[plain.Length < bsize ? plain.Length : bsize];
 
-    while ((readlength = plain.ChunkReader(bufferbytes, offset, bufferbytes.Length)) != 0)
-    {
-      if (readlength != bufferbytes.Length)
-        Array.Resize(ref bufferbytes, readlength);
+    if (this.MChaCha20 is not null)
+      while ((readlength = plain.ChunkReader(bufferbytes, offset, bufferbytes.Length)) != 0)
+      {
+        if (readlength != bufferbytes.Length)
+          Array.Resize(ref bufferbytes, readlength);
 
-      if (this.MChaCha20 is not null)
         cblock = this.MChaCha20.Next_Bytes();
 
-      for (int i = 0; i < readlength; i++)
-        bufferbytes[i] ^= cblock[i];
+        for (int i = 0; i < readlength; i++)
+          bufferbytes[i] ^= cblock[i];
 
-      this.Update(bufferbytes);
-      Array.Copy(bufferbytes, 0, result, poffset + offset, bufferbytes.Length);
+        this.Update(bufferbytes, 0);
+        Array.Copy(bufferbytes, 0, result, poffset + offset, bufferbytes.Length);
 
-      offset += readlength;
-    }
+        offset += readlength;
+      }
     Array.Clear(cblock, 0, cblock.Length);
     Array.Clear(bufferbytes, 0, bufferbytes.Length);
 
     var tmp = new byte[16];
     Array.Copy(FromUI64((ulong)aad.LongLength), tmp, 8);
     Array.Copy(FromUI64((ulong)plain.LongLength), 0, tmp, 8, 8);
-    this.Update(tmp);
+    this.Update(tmp,0);
 
     var tag = this.ToTag();
     Array.Copy(this.MIv, 0, result, TAG_SIZE, this.MIv.Length);
