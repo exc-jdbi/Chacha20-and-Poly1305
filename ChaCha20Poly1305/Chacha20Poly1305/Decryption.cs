@@ -126,7 +126,7 @@ partial class ChaCha20Poly1305Ex
   /// </summary>
   /// <param name="srcfilename">Filepath source.</param>
   /// <param name="destfilename">Filepath destination.</param>
-  /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
+  /// <param name="add">Additional authenticated data.</param>
   public void Decryption(string srcfilename, string destfilename, byte[] aad)
   {
     this.AssertDecryption(srcfilename, destfilename);
