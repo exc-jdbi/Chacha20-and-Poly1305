@@ -9,6 +9,8 @@ using static RandomHolder;
 internal class UnitTestPoly1305
 {
 
+
+
   public static void StartUnitTest()
   {
     Console.WriteLine($"{nameof(UnitTestPoly1305)}");
@@ -17,6 +19,7 @@ internal class UnitTestPoly1305
 
 
     var round = 10_000;
+    Test_HmacPoly1305_First(round);
     Test_HmacPoly1305(round);
     Test_HmacPoly1305_Stream(round);
     Test_HmacPoly1305_File(round);
@@ -24,6 +27,34 @@ internal class UnitTestPoly1305
 
     Console.WriteLine();
   }
+
+  private static void Test_HmacPoly1305_First(int round)
+  {
+    Console.Write($"{nameof(Test_HmacPoly1305_First)} ");
+
+    int size = 0;
+    var sw = Stopwatch.StartNew();
+
+    for (var i = 0; i < round; i++)
+    {
+      size = 8 + i;
+      var key = RngBytes(32);
+      var bytes = RngBytes(size);
+
+      using var hmac = new HMacPoly1305(key);
+      var hash1 = hmac.ComputeHash(bytes);
+      var hash2 = hmac.ComputeHash(bytes);
+
+      //Note: The hashvalues are always the same here.
+      if (!hash1.SequenceEqual(hash2))
+        Debugger.Break();
+
+      if (i % 1000 == 0) Console.Write(".");
+    }
+    Console.WriteLine($" t = {sw.ElapsedMilliseconds}ms; r = {round}; size = {size}");
+
+  }
+
 
   private static void Test_HmacPoly1305(int round)
   {

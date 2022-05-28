@@ -1,6 +1,6 @@
 ﻿
-using exc.jdbi.Cryptography;
 using System.Diagnostics;
+using exc.jdbi.Cryptography;
 using System.Security.Cryptography;
 
 namespace ChaCha20Poly1305Test;
@@ -188,6 +188,7 @@ internal class UnitTestXChacha20
     Console.WriteLine($" t = {sw.ElapsedMilliseconds}ms; r = {rounds}");
     Console.WriteLine();
   }
+
   private static void Test_Instance_File_And_Stream(int rounds)
   {
     Console.Write($"{nameof(Test_Instance_File_And_Stream)} ");
