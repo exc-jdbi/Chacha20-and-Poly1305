@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Poly1305\**" />
+    <EmbeddedResource Remove="Poly1305\**" />
+    <None Remove="Poly1305\**" />
+  </ItemGroup>
+
+</Project>
