@@ -15,8 +15,6 @@ partial class ChaCha20Poly1305Ex
   /// <returns>Ciphertext as array of byte</returns>
   public byte[] Encryption(byte[] plain, byte[] aad)
   {
-    //https://cloud.google.com/kms/docs/additional-authenticated-data?hl=de
-
     //Must be traversed for a counter check.
     AssertEncryption(plain, aad);
 
