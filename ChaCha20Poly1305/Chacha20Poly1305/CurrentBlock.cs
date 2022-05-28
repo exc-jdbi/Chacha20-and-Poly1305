@@ -70,7 +70,8 @@ partial class ChaCha20Poly1305Ex
     this.H[1] = t[1] & mask | this.H[1] & ~mask;
     this.H[2] = t[2] & mask | this.H[2] & ~mask;
     this.H[3] = t[3] & mask | this.H[3] & ~mask;
-    this.H[4] = t[4] & mask | this.H[4] & ~mask; 
+    this.H[4] = t[4] & mask | this.H[4] & ~mask;
+    Array.Clear(t, 0, t.Length);
 
     var h = new uint[]
     {
@@ -82,15 +83,16 @@ partial class ChaCha20Poly1305Ex
 
     var v = new ulong[4];
     v[0] = (ulong)h[0] + this.S[1];
-    v[1] = ((ulong)h[1] + this.S[2]) + (v[0] >> 32);
-    v[2] = ((ulong)h[2] + this.S[3]) + (v[1] >> 32);
-    v[3] = ((ulong)h[3] + this.S[4]) + (v[2] >> 32);
-
+    v[1] = (ulong)h[1] + this.S[2] + (v[0] >> 32);
+    v[2] = (ulong)h[2] + this.S[3] + (v[1] >> 32);
+    v[3] = (ulong)h[3] + this.S[4] + (v[2] >> 32);
+    Array.Clear(h, 0, h.Length);
 
     Array.Copy(FromUI32((uint)v[0]), result, 4);
     Array.Copy(FromUI32((uint)v[1]), 0, result, 4, 4);
     Array.Copy(FromUI32((uint)v[2]), 0, result, 8, 4);
     Array.Copy(FromUI32((uint)v[3]), 0, result, 12, 4);
+    Array.Clear(v, 0, v.Length);
     return result;
   } 
 
