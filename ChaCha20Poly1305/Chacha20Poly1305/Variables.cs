@@ -17,7 +17,7 @@ partial class ChaCha20Poly1305Ex
   public const int AAD_MIN_SIZE = 0;
   public const int AAD_MAX_SIZE = 1024;//1 kiB
   public const int PLAIN_MIN_SIZE = 10;
-  public const long COUNTER_MAX = 64 << 32;
+  public const long COUNTER_MAX = 64L << 32;
 
   private ChaCha20? MChaCha20 = null;
 
