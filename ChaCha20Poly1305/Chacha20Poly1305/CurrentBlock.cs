@@ -9,10 +9,9 @@ using static Extensions.StreamExtensions;
 
 partial class ChaCha20Poly1305Ex
 {
-  private void Update(byte[] bytes)
+  private void Update(byte[] bytes, int offset)
   {
     int readlength;
-    int offset = 0;
     var step = BLOCK_SIZE;
     var bufferbytes = new byte[step];
     while ((readlength = bytes.ChunkReader(bufferbytes, offset, bufferbytes.Length)) != 0)
@@ -79,19 +78,14 @@ partial class ChaCha20Poly1305Ex
       this.H[1] >> 6 | this.H[2] << 20,
       this.H[2] >> 12 |this.H[3] << 14,
       this.H[3] >> 18 | this.H[4] << 8
-    }; 
+    };
 
-    var v = new ulong[]
-    {
-      (ulong)h[0] + this.S[1],
-      (ulong)h[1] + this.S[2],
-      (ulong)h[2] + this.S[3],
-      (ulong)h[3] + this.S[4]
-    };  
+    var v = new ulong[4];
+    v[0] = (ulong)h[0] + this.S[1];
+    v[1] = ((ulong)h[1] + this.S[2]) + (v[0] >> 32);
+    v[2] = ((ulong)h[2] + this.S[3]) + (v[1] >> 32);
+    v[3] = ((ulong)h[3] + this.S[4]) + (v[2] >> 32);
 
-    v[1] += v[0] >> 32;
-    v[2] += v[1] >> 32;
-    v[3] += v[2] >> 32;
 
     Array.Copy(FromUI32((uint)v[0]), result, 4);
     Array.Copy(FromUI32((uint)v[1]), 0, result, 4, 4);
