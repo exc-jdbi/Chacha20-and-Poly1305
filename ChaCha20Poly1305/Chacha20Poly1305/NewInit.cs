@@ -32,7 +32,7 @@ partial class ChaCha20Poly1305Ex
   }
 
   private void SetAllParameters(byte[] key, byte[] iv, int rounds)
-  { 
+  {
     this.MIv = iv.ToArray();
     this.MKey = key.ToArray();
     this.MChaCha20 = new ChaCha20(key, iv, rounds);

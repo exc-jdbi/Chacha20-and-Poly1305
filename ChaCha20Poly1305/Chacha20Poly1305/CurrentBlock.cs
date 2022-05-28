@@ -21,6 +21,20 @@ partial class ChaCha20Poly1305Ex
       Array.Clear(bufferbytes,0, bufferbytes.Length);
     }
   }
+
+  private void Update(Stream bytes, int start)
+  {
+    var step = BLOCK_SIZE;
+    bytes.Position = start;
+    var bufferbytes = new byte[step];
+    while (bytes.ChunkReader(bufferbytes, 0, bufferbytes.Length) != 0)
+    {
+      UpdateBlock(bufferbytes);
+      Array.Clear(bufferbytes, 0, bufferbytes.Length);
+    }
+  }
+
+
   private void UpdateBlock(byte[] bytes)
   {
     this.H[0] += ToUI32(bytes, 0) & 0x03ffffff;
@@ -49,7 +63,7 @@ partial class ChaCha20Poly1305Ex
 
   private byte[] ToTag()
   {
-    var result = new byte[HASH_SIZE];
+    var result = new byte[TAG_SIZE];
 
     this.H[2] += (this.H[1] >> 26) & 0x03ffffff;
     this.H[3] += (this.H[2] >> 26) & 0x03ffffff;

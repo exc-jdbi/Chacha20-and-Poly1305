@@ -31,6 +31,7 @@ partial class ChaCha20Poly1305Ex
     if (plain is null || plain.Length < PLAIN_MIN_SIZE)
       throw new ArgumentOutOfRangeException(nameof(plain));
 
+    //https://cloud.google.com/kms/docs/additional-authenticated-data?hl=de
     if (aad is null || aad.Length < AAD_MIN_SIZE || aad.Length > AAD_MAX_SIZE)
       throw new ArgumentOutOfRangeException(nameof(aad));
 
@@ -47,6 +48,7 @@ partial class ChaCha20Poly1305Ex
     if (plain is null || plain.Length < PLAIN_MIN_SIZE)
       throw new ArgumentOutOfRangeException(nameof(plain));
 
+    //https://cloud.google.com/kms/docs/additional-authenticated-data?hl=de
     if (aad is null || aad.Length < AAD_MIN_SIZE || aad.Length > AAD_MAX_SIZE)
       throw new ArgumentOutOfRangeException(nameof(aad));
 
@@ -55,7 +57,7 @@ partial class ChaCha20Poly1305Ex
         $"The limit of {COUNTER_MAX} per IV (nonce) has been exceeded. Please change IV (nonce).");
   }
 
-  private void AssertEncryption(string srcfilename, string destfilename, byte[]? associated)
+  private void AssertEncryption(string srcfilename, string destfilename, byte[] aad)
   {
     if (this.IsDisposed)
       this.ThrowIsDisposed();
@@ -66,19 +68,18 @@ partial class ChaCha20Poly1305Ex
     if (string.IsNullOrEmpty(destfilename) || new FileInfo(destfilename) == null)
       throw new ArgumentNullException(nameof(destfilename), destfilename);
 
+    //https://cloud.google.com/kms/docs/additional-authenticated-data?hl=de
+    if (aad is null || aad.Length < AAD_MIN_SIZE || aad.Length > AAD_MAX_SIZE)
+      throw new ArgumentOutOfRangeException(nameof(aad));
+
     var fi = new FileInfo(srcfilename);
     if (fi.Length < PLAIN_MIN_SIZE)
       throw new ArgumentOutOfRangeException(nameof(srcfilename),
         $"File.Length < {PLAIN_MIN_SIZE}");
 
-    //if (this.CheckLimit((uint)fi.Length))
-    //  throw new ArgumentOutOfRangeException(nameof(srcfilename),
-    //    "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
-
-    if (associated is null) return;
-
-    if (associated is null || associated.Length < 1)
-      throw new ArgumentOutOfRangeException(nameof(associated));
+    if (this.CheckLimit((uint)fi.Length))
+      throw new ArgumentOutOfRangeException(nameof(srcfilename),
+        $"The limit of {COUNTER_MAX} per IV (nonce) has been exceeded. Please change IV (nonce).");
   }
 
   private void AssertDecryption(byte[] cipher)
@@ -120,10 +121,10 @@ partial class ChaCha20Poly1305Ex
     if (string.IsNullOrEmpty(destfilename) || new FileInfo(destfilename) == null)
       throw new ArgumentNullException(nameof(destfilename), destfilename);
 
-    //var fi = new FileInfo(srcfilename);
-    //if (this.CheckLimit((uint)fi.Length))
-    //  throw new ArgumentOutOfRangeException(nameof(srcfilename),
-    //    "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
+    var fi = new FileInfo(srcfilename);
+    if (this.CheckLimit((uint)fi.Length))
+      throw new ArgumentOutOfRangeException(nameof(srcfilename),
+        $"The limit of {COUNTER_MAX} per IV (nonce) has been exceeded. Please change IV (nonce).");
   }
 
   private void ThrowIsDisposed()

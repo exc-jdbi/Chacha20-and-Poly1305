@@ -12,7 +12,6 @@ partial class ChaCha20Poly1305Ex
   public const int TAG_SIZE = 16;
   public const int KEY_SIZE = 32;
   public const int ROUND_MIN = 2;
-  public const int HASH_SIZE = 16;
   private const int BLOCK_SIZE = 16;
   public const int AAD_MIN_SIZE = 0;
   public const int AAD_MAX_SIZE = 1024;//1 kiB
