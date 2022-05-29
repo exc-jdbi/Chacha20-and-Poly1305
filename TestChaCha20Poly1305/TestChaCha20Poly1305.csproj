@@ -8,9 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ChaCha20Poly1305\ChaCha20Poly1305Ex.csproj" />
     <ProjectReference Include="..\Chacha20\Chacha20.csproj" />
     <ProjectReference Include="..\Poly1305\Poly1305.csproj" />
     <ProjectReference Include="..\XChacha20\XChacha20.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CMemory_AnyCPU">
+      <HintPath>..\CMemory\CMemory_AnyCPU.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
