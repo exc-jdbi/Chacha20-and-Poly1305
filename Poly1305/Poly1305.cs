@@ -24,7 +24,7 @@ namespace exc.jdbi.Cryptography;
 /// <para><see href="https://github.com/TimothyMeadows"></see></para>
 /// <para><see href="https://github.com/floodyberry"></see></para>
 /// </remarks>
-public partial class Poly1305 : IDisposable
+public sealed partial class Poly1305 : IDisposable
 {
 
   /// <summary>
@@ -38,7 +38,7 @@ public partial class Poly1305 : IDisposable
   public Poly1305(byte[] key)
   => this.NewInit(key);
 
-  protected virtual void Dispose(bool disposing)
+  private void Dispose(bool disposing)
   {
     if (!this.IsDisposed)
     {
