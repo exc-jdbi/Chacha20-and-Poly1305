@@ -10,8 +10,6 @@ public class Program
 
     var sw = Stopwatch.StartNew();
 
-    UnitTestRfc.StartUnitTest();
-
     UnitTestCMemory.StartUnitTest();
 
     UnitTestChacha20.StartUnitTest();
