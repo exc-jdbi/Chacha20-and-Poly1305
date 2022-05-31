@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
+
+    <Authors>© exc-jdbi 2022</Authors>
+    <Product>© UnitTests 2022</Product>
+    <Company>© exc-jdbi 2022</Company>
+    <IsPublishable>False</IsPublishable>
+    <Description>All Unittests</Description>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
