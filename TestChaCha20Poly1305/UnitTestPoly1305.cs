@@ -1,6 +1,4 @@
-﻿
-using System.Security.Cryptography;
-using exc.jdbi.Cryptography;
+﻿using exc.jdbi.Cryptography;
 using System.Diagnostics;
 
 namespace ChaCha20Poly1305Test;

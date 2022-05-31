@@ -10,15 +10,17 @@ public class Program
 
     var sw = Stopwatch.StartNew();
 
-    //UnitTestCMemory.StartUnitTest();
+    UnitTestRfc.StartUnitTest();
+
+    UnitTestCMemory.StartUnitTest();
 
     UnitTestChacha20.StartUnitTest();
     UnitTestXChacha20.StartUnitTest();
 
     UnitTestPoly1305.StartUnitTest();
 
-    //UnitTestChacha20Poly1305.StartUnitTest();
-    //UnitTestXChacha20Poly1305.StartUnitTest();
+    UnitTestChacha20Poly1305.StartUnitTest();
+    UnitTestXChacha20Poly1305.StartUnitTest();
 
     sw.Stop();
 
@@ -39,6 +41,8 @@ public class RandomHolder
 
   public static byte[] RngBytes(int size)
   {
+    //For the tests this random is sufficient.
+    //In practice, a crypto-random is used. 
     var result = new byte[size];
     Rand.NextBytes(result);
     return result;
