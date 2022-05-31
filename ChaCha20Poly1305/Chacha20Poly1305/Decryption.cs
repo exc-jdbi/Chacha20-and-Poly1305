@@ -68,7 +68,7 @@ partial class ChaCha20Poly1305Ex
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt.</param>
   /// <param name="aad">Additional authenticated data</param>
-  /// <returns>Plaintext as array of byte</returns>
+  /// <returns>Plaintext as stream</returns>
   public Stream Decryption(Stream cipher, byte[] aad)
   {
     AssertDecryption(cipher);
@@ -80,7 +80,7 @@ partial class ChaCha20Poly1305Ex
 
     if (!iv.SequenceEqual(this.MIv))
       this.NewInit(this.MKey.ToArray(), iv);
-     
+
     this.Update(aad, 0);
     this.Update(cipher, offset);
     long realcipherlength = cipher.Length - offset;

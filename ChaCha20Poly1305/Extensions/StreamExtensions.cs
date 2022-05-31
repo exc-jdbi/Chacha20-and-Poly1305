@@ -51,7 +51,7 @@ internal static class StreamExtensions
   {
     if (offset >= src.Length) return 0;
     count = src.Length - offset - count < 0 ? src.Length - offset : count;
-    Array.Copy(src,offset, dest, 0,count);
+    Array.Copy(src, offset, dest, 0, count);
     return count;
   }
 

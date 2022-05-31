@@ -4,6 +4,7 @@ using System.Text;
 namespace exc.jdbi.Cryptography;
 
 using static Converts.Convert;
+
 partial class ChaCha20Poly1305Ex
 {
   partial class ChaCha20
@@ -15,7 +16,7 @@ partial class ChaCha20Poly1305Ex
       ToUI32s(key, 0, this.CurrentBlock, 4, 8);
       //Der komplette iv wird auf 13,14,15 verteilt
       //D.h. der Counter ist der Index 12 >> 0 - (2^32-1)
-      
+
       //The complete iv is distributed to 13,14,15
       //I.e.the counter is the index 12 >> 0 - (2 ^ 32 - 1)
       ToUI32s(iv, 0, this.CurrentBlock, 13, 3);

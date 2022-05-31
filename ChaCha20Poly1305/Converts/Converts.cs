@@ -189,7 +189,7 @@ internal class Convert
   public static byte[] FromUI32(uint uints)
   {
     var result = new byte[4];
-    result[0] = (byte) uints;
+    result[0] = (byte)uints;
     result[1] = (byte)(uints >> 8);
     result[2] = (byte)(uints >> 16);
     result[3] = (byte)(uints >> 24);

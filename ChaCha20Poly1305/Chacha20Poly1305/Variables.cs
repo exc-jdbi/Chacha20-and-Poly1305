@@ -21,10 +21,10 @@ partial class ChaCha20Poly1305Ex
   private ChaCha20? MChaCha20 = null;
 
   private byte[] MIv = Array.Empty<byte>();
-  private byte[] MKey = Array.Empty<byte>();  
+  private byte[] MKey = Array.Empty<byte>();
 
   private uint[] R = Array.Empty<uint>();
-  private uint[] S = Array.Empty<uint>(); 
+  private uint[] S = Array.Empty<uint>();
   private uint[] H = Array.Empty<uint>();
 
   public bool IsDisposed { get; private set; } = false;

@@ -17,10 +17,11 @@ partial class ChaCha20Poly1305Ex
     public const int TAU_SIGMA_SIZE = 16;
     private const int CURRENTBLOCK_SIZE = 16;
 
-    private byte[] X = Array.Empty<byte>(); 
+    private byte[] X = Array.Empty<byte>();
     private readonly uint[] TauSigma = ToTauSigma();
     private uint[] CurrentBlock = Array.Empty<uint>();
 
     public bool IsDisposed { get; private set; } = false;
+
   }
 }

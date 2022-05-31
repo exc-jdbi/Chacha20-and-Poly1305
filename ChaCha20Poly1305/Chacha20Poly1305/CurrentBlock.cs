@@ -17,8 +17,8 @@ partial class ChaCha20Poly1305Ex
     while ((readlength = bytes.ChunkReader(bufferbytes, offset, bufferbytes.Length)) != 0)
     {
       UpdateBlock(bufferbytes);
-      offset += readlength; 
-      Array.Clear(bufferbytes,0, bufferbytes.Length);
+      offset += readlength;
+      Array.Clear(bufferbytes, 0, bufferbytes.Length);
     }
   }
 
@@ -40,7 +40,7 @@ partial class ChaCha20Poly1305Ex
     this.H[0] += ToUI32(bytes, 0) & 0x03ffffff;
     this.H[1] += (ToUI32(bytes, 3) >> 2) & 0x03ffffff;
     this.H[2] += (ToUI32(bytes, 6) >> 4) & 0x03ffffff;
-    this.H[3] += (ToUI32(bytes, 9) >>6) & 0x03ffffff;
+    this.H[3] += (ToUI32(bytes, 9) >> 6) & 0x03ffffff;
     this.H[4] += (ToUI32(bytes, 12) >> 8) | (1 << 24);
 
     var t = new ulong[5];
@@ -54,12 +54,12 @@ partial class ChaCha20Poly1305Ex
     this.H[1] = (uint)t[1] & 0x3ffffff; t[2] += t[1] >> 26;
     this.H[2] = (uint)t[2] & 0x3ffffff; t[3] += t[2] >> 26;
     this.H[3] = (uint)t[3] & 0x3ffffff; t[4] += t[3] >> 26;
-    this.H[4] = (uint)t[4] & 0x3ffffff; 
+    this.H[4] = (uint)t[4] & 0x3ffffff;
     this.H[0] += (uint)(t[4] >> 26) * 5;
     this.H[1] += (this.H[0] >> 26); this.H[0] &= 0x3ffffff;
     Array.Clear(t, 0, t.Length);
 
-  } 
+  }
 
   private byte[] ToTag()
   {
@@ -72,7 +72,7 @@ partial class ChaCha20Poly1305Ex
     this.H[1] += (this.H[0] >> 26) & 0x03ffffff;
 
     var t = this.H.ToArray();
-     
+
     t[0] += 5; t[1] += t[0] >> 26; t[0] &= 0x03ffffff;
     t[2] += t[1] >> 26; t[1] &= 0x03ffffff;
     t[3] += t[2] >> 26; t[2] &= 0x03ffffff;
@@ -108,10 +108,11 @@ partial class ChaCha20Poly1305Ex
     Array.Copy(FromUI32((uint)v[3]), 0, result, 12, 4);
     Array.Clear(v, 0, v.Length);
     return result;
-  } 
+  }
 
   private static ulong MultUI64(uint i1, uint i2)
     => ((ulong)i1) * i2;
+
   private static ulong MultUI64(uint i1, ulong i2)
     => i1 * i2;
 

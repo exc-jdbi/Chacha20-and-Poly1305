@@ -26,7 +26,7 @@ partial class ChaCha20Poly1305Ex
     /// <param name="iv">The iv (nonce) associated with this initialize, which should be a unique value for every operation with the same key.</param>
     /// <param name="round">Default: 20.</param>
     public void NewInit(byte[] key, byte[] iv, int round = 20)
-    { 
+    {
       if (this.IsDisposed)
         this.ThrowIsDisposed();
 

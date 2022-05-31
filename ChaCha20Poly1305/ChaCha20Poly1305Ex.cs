@@ -1,19 +1,4 @@
 ﻿
-//Die gleiche ChaCha20Poly1305-Instanz wird über eine
-//lange Strecke genutzt. Der interne Counter wird immer um 1
-//hochgezählt, damit rechtzeitig abgebrochen wird.
-//Der iv (nonce) wird in Chacha20 über eine Strecke von 2^32
-//voll ausgenutzt, was einer Verschlüsselungsstrecke in
-//Chacha20Poly1305 von 64 * 2^32 (ca.256Gb) entspricht. 
-
-//The same ChaCha20Poly1305 instance is used over a long distance.
-//The internal counter is always incremented by 1, so that it is aborted in time.
-//The iv (nonce) is fully utilized in Chacha20 over a distance of 2^32,
-//which corresponds to an encryption distance in Chacha20Poly1305
-//of 64 * 2^32 (approx.256Gb). 
-//https://datatracker.ietf.org/doc/html/rfc7539#section-2.8
-
-
 namespace exc.jdbi.Cryptography;
 
 
@@ -32,7 +17,7 @@ namespace exc.jdbi.Cryptography;
 /// <para><see href="https://github.com/floodyberry"></see></para>
 /// </remarks>
 public sealed partial class ChaCha20Poly1305Ex : IDisposable
-{ 
+{
   private ChaCha20Poly1305Ex() => this.IsDisposed = false;
 
   /// <summary>

@@ -63,12 +63,12 @@ partial class ChaCha20Poly1305Ex
   /// </summary>
   /// <param name="plain">The content to encrypt.</param>
   /// <param name="aad">Additional authenticated data</param>
-  /// <returns>Ciphertext as array of byte</returns>
+  /// <returns>Ciphertext as stream</returns>
   public Stream Encryption(Stream plain, byte[] aad)
   {
     //Must be traversed for a counter check.
     AssertEncryption(plain, aad);
-    
+
     this.Update(aad, 0);
 
     int readlength;
@@ -76,7 +76,7 @@ partial class ChaCha20Poly1305Ex
     var offset = TAG_SIZE + IV_SIZE;
     byte[] cblock = Array.Empty<byte>();
     var bufferbytes = new byte[plain.Length < bsize ? plain.Length : bsize];
-     
+
     var stream_length = plain.Length > int.MaxValue ? int.MaxValue : (int)plain.Length + offset;
     var msout = new MemoryStream(stream_length) { Position = offset };
 
@@ -93,7 +93,7 @@ partial class ChaCha20Poly1305Ex
           bufferbytes[i] ^= cblock[i];
 
         this.Update(bufferbytes, 0);
-        msout.Write(bufferbytes); 
+        msout.Write(bufferbytes);
       }
 
     Array.Clear(cblock, 0, cblock.Length);
@@ -119,7 +119,7 @@ partial class ChaCha20Poly1305Ex
   /// <param name="srcfilename">Filepath source</param>
   /// <param name="destfilename">Filepath destination</param>
   /// <param name="add">Additional authenticated data.</param>
-  public void Encryption(string srcfilename, string destfilename, byte[]aad)
+  public void Encryption(string srcfilename, string destfilename, byte[] aad)
   {
     this.AssertEncryption(srcfilename, destfilename, aad);
 
