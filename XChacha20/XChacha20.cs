@@ -4,7 +4,8 @@ namespace exc.jdbi.Cryptography;
 
 /// <summary> 
 /// <para>A Modification of Implementation of Daniel J. Bernstein's ChaCha20 stream cipher.</para>
-/// <see href="https://cr.yp.to/chacha/chacha-20080128.pdf"></see>
+/// <para><see href="https://cr.yp.to/chacha/chacha-20080128.pdf"></see></para>
+/// <see href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha-03"></see>
 /// <para>further modified by © exc-jdbi 2022</para>
 /// </summary>
 public sealed partial class XChaCha20 : HChaCha20

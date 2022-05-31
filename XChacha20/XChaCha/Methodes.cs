@@ -16,6 +16,7 @@ partial class XChaCha20
         return (++this.CW[2] & 0x20) != 0;
     return false;
   }
+
   private void SetCounter()
   {
     if (++this.CurrentBlock[12] == 0) ++this.CurrentBlock[13];

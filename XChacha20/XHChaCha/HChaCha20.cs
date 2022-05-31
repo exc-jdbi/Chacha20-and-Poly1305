@@ -13,7 +13,7 @@ public abstract partial class HChaCha20 : IDisposable
   private HChaCha20() => this.IsDisposed = false;
 
   /// <summary>
-  /// Initializes a new instance of the ChaCha20 class with a provided key.
+  /// Initializes a new instance of the HChaCha20 class with a provided key.
   /// An iv (nonce) is created randomly.
   /// </summary>
   /// <param name="key">The secret key to use for this instance.</param>
@@ -22,7 +22,7 @@ public abstract partial class HChaCha20 : IDisposable
   => this.NewInit(key, round);
 
   /// <summary>
-  /// Initializes a new instance of the ChaCha20 class with a 
+  /// Initializes a new instance of the HChaCha20 class with a 
   /// provided key and iv.
   /// </summary>
   /// <param name="key">The secret key to use for this instance.</param>

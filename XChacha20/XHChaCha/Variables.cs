@@ -23,7 +23,4 @@ partial class HChaCha20
   private byte[] MKey = Array.Empty<byte>();
   protected byte[] MIv = Array.Empty<byte>();
   protected uint[] CurrentBlock = Array.Empty<uint>();
-
-
-
 }

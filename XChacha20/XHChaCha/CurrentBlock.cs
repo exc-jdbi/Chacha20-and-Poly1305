@@ -22,6 +22,7 @@ partial class HChaCha20
     //Alle 32 Bytes vom HChaCha20-Key werden
     //dem Currentblock zugewiesen.
     Array.Copy(k, 0, result, 4, k.Length);
+    Array.Clear(k, 0, k.Length);
     //Beide CounterIndexes werden beim Erstellen des
     //Currentblockes auf 0 gesetzt.
     //D.h. Wird ein iv-Wechsel eingeleitet, müssen
@@ -44,6 +45,9 @@ partial class HChaCha20
 
   protected void SetIv(byte[] iv)
   {
+    if (this.MIv.SequenceEqual(iv))
+      return;
+
     //Ein Wechsel von iv ändert den Currentblock
     //Nur die ersten 4 Indexes und die CounterIndexes
     //werden gleich bleiben.
@@ -56,5 +60,6 @@ partial class HChaCha20
     this.SetCurrentBlock();
     //Aktuelle CounterIndexes übernehmen !!
     Array.Copy(xy, 0, this.CurrentBlock, 12, 2);
+    Array.Clear(xy, 0, xy.Length);
   }
 }

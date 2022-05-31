@@ -75,7 +75,7 @@ partial class XChaCha20
     if (cipher is null)
       throw new ArgumentNullException(nameof(cipher));
 
-    if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE)))
+    if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - IV_SIZE)))
       throw new ArgumentOutOfRangeException(nameof(cipher),
         "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
 
@@ -89,7 +89,7 @@ partial class XChaCha20
     if (cipher is null)
       throw new ArgumentNullException(nameof(cipher));
 
-    if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - ASSOCIATED_SIZE - IV_SIZE)))
+    if (this.CheckLimit((uint)(cipher.Length - TAG_SIZE - IV_SIZE)))
       throw new ArgumentOutOfRangeException(nameof(cipher),
         "The limit of 2^70 bytes per IV has been exceeded. Please change IV.");
 

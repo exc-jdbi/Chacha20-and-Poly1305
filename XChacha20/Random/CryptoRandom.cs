@@ -57,6 +57,7 @@ internal sealed class CryptoRandom
   private static void WarmUp()
   {
     var bytes = new byte[4];
+    Rand.GetNonZeroBytes(bytes);
     var number = BitConverter.ToUInt32(bytes, 0);
     var count = (number % 1000U) + 1234U;
     bytes = new byte[count];

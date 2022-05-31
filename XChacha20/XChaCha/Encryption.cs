@@ -122,13 +122,53 @@ partial class XChaCha20
   {
     this.AssertEncryption(srcfilename, destfilename, associated);
 
-    using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var cipherstream = this.Encryption(fsinput, associated, new_iv);
-
-    if (File.Exists(destfilename)) File.Delete(destfilename);
+    using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read); 
     using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
-    cipherstream.Position = 0;
-    cipherstream.CopyTo(fsout); 
+
+    var counterindexes = new[] { this.CurrentBlock[12], this.CurrentBlock[13] };
+
+    if (new_iv) this.SetIv(NewIv());
+    var associat = this.ToAssociated(associated);
+
+    var stream_length = fsinput.Length > int.MaxValue ? int.MaxValue : (int)fsinput.Length; 
+    fsout.Position = TAG_SIZE;
+    fsout.Write(this.MIv);
+
+    int readlength;
+    var result = Array.Empty<byte>();
+    var bufferbytes = new byte[BLOCK_SIZE];
+
+    //Not the fastest variant, but it work.
+    while ((readlength = fsinput.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
+    {
+      if (result.Length != readlength)
+        result = new byte[readlength];
+
+      for (var i = 0; i < readlength; i++)
+      {
+        if (this.Index == 0)
+        {
+          //The CurrentBlock always remains the same, except 
+          //for the CounterIndexes, which are incremented.
+          this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
+          this.SetCounter();
+        }
+        result[i] = (byte)(this.X[this.Index] ^ bufferbytes[i]);
+        this.Index = (this.Index + 1) & 63;
+      }
+      fsout.Write(result);
+    }
+
+    var cblockkey = this.ToCBlockKey(counterindexes);
+    fsout.Position = TAG_SIZE;
+    var tag = ToTag(cblockkey, fsout, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+    Array.Clear(bufferbytes, 0, bufferbytes.Length);
+    Array.Clear(counterindexes, 0, counterindexes.Length);
+
+    fsout.Position = 0;
+    fsout.Write(tag);
   }
 
   private static byte[] ToTag(byte[] key, byte[] cipher, int offset, byte[]? entropie = null)
@@ -141,7 +181,7 @@ partial class XChaCha20
       bytes = _hmac.ComputeHash(bytes);
     }
 
-    return ToNewKey(bytes, cipher,offset, TAG_SIZE); 
+    return ToNewKey(bytes, cipher, offset, TAG_SIZE);
   }
 
   private static byte[] ToTag(byte[] key, Stream cipher, byte[]? entropie = null)
@@ -155,7 +195,7 @@ partial class XChaCha20
     }
 
     cipher.Position = TAG_SIZE;
-    return ToNewKey(bytes, cipher, TAG_SIZE); 
+    return ToNewKey(bytes, cipher, TAG_SIZE);
   }
 
   private byte[] ToCBlockKey(uint[] counterindexes)

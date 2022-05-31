@@ -110,12 +110,46 @@ partial class XChaCha20
     this.AssertDecryption(srcfilename, destfilename);
 
     using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var decipherstream = this.Decryption(fsinput, associated);
+    using var fsout = new FileStream(destfilename, FileMode.CreateNew, FileAccess.ReadWrite);
 
-    if (File.Exists(destfilename)) File.Delete(destfilename);
-    using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
-    decipherstream.Position = 0;
-    decipherstream.CopyTo(fsout);
+    fsinput.Position = TAG_SIZE;
+    var result = new byte[IV_SIZE];
+    fsinput.ChunkReader(result, 0, result.Length);
+
+    this.SetIv(result);
+    var associat = this.ToAssociated(associated);
+    var cblockkey = FromUI32(this.CurrentBlock);
+    Verify(cblockkey, fsinput, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, cblockkey.Length);
+
+    int readlength;
+    Array.Clear(result, 0, result.Length);
+    result = Array.Empty<byte>();
+    var bufferbytes = new byte[BLOCK_SIZE];
+
+    var skip = TAG_SIZE + IV_SIZE;
+    fsinput.Position = skip;
+
+    while ((readlength = fsinput.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
+    {
+      if (result.Length != readlength)
+        result = new byte[readlength];
+
+      for (var i = 0; i < readlength; i++)
+      {
+        if (this.Index == 0)
+        {
+          //The current block always remains the same, except 
+          //for the CounterIndexes, which are incremented.
+          this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
+          this.SetCounter();
+        }
+        result[i] = (byte)(this.X[this.Index] ^ bufferbytes[i]);
+        this.Index = (this.Index + 1) & 63;
+      }
+      fsout.Write(result);
+    }
   }
 
   private static void Verify(byte[] key, byte[] cipher, byte[] associat)
@@ -127,7 +161,7 @@ partial class XChaCha20
     if (verify) return;
 
     throw new CryptographicException(
-      $"Signature verification has failed!");
+      $"Tag-Signature verification has failed!");
   }
 
 
@@ -144,6 +178,6 @@ partial class XChaCha20
     if (verify) return;
 
     throw new CryptographicException(
-      $"Signature verification has failed!");
+      $"Tag-Signature verification has failed!");
   }
 }
