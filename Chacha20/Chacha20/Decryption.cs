@@ -15,7 +15,7 @@ partial class ChaCha20
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt.</param>
   /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
-  /// <returns>plaintext as array of bytes</returns>
+  /// <returns>Plaintext as array of bytes</returns>
   public byte[] Decryption(byte[] cipher, byte[]? associated = null)
   {
     this.AssertDecryption(cipher);
@@ -49,7 +49,7 @@ partial class ChaCha20
   /// </summary>
   /// <param name="cipher">The encrypted content to decrypt as stream.</param>
   /// <param name="associated">Extra data associated with this message, which must match the value provided during encryption.</param>
-  /// <returns>plaintext as stream</returns>
+  /// <returns>Plaintext as stream</returns>
   public Stream Decryption(Stream cipher, byte[]? associated = null)
   {
     this.AssertDecryption(cipher);
@@ -74,7 +74,7 @@ partial class ChaCha20
     cipher.Position = skip;
 
     var stream_length = cipher.Length - skip > int.MaxValue ? int.MaxValue : (int)cipher.Length - skip;
-    var msout = new MemoryStream(stream_length) ;
+    var msout = new MemoryStream(stream_length);
 
     while ((readlength = cipher.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
     {
@@ -110,12 +110,46 @@ partial class ChaCha20
     this.AssertDecryption(srcfilename, destfilename);
 
     using var fsinput = new FileStream(srcfilename, FileMode.Open, FileAccess.Read);
-    using var decipherstream = this.Decryption(fsinput, associated);
+    using var fsout = new FileStream(destfilename, FileMode.CreateNew, FileAccess.ReadWrite);
 
-    if (File.Exists(destfilename)) File.Delete(destfilename);
-    using var fsout = new FileStream(destfilename, FileMode.Create, FileAccess.ReadWrite);
-    decipherstream.Position = 0;
-    decipherstream.CopyTo(fsout);
+    fsinput.Position = TAG_SIZE;
+    var result = new byte[IV_SIZE];
+    fsinput.ChunkReader(result, 0, result.Length);
+    ToUI32s(result, 0, this.CurrentBlock, 14, 2);
+
+    var associat = this.ToAssociated(associated);
+    var cblockkey = FromUI32(this.CurrentBlock);
+    Verify(cblockkey, fsinput, associat);
+    Array.Clear(associat, 0, associat.Length);
+    Array.Clear(cblockkey, 0, associat.Length);
+
+    int readlength;
+    Array.Clear(result, 0, result.Length);
+    result = Array.Empty<byte>();
+
+    var bufferbytes = new byte[BLOCK_SIZE];
+    var skip = TAG_SIZE + IV_SIZE;
+    fsinput.Position = skip;
+
+    while ((readlength = fsinput.ChunkReader(bufferbytes, 0, bufferbytes.Length)) != 0)
+    {
+      if (result.Length != readlength)
+        result = new byte[readlength];
+
+      for (var i = 0; i < readlength; i++)
+      {
+        if (this.Index == 0)
+        {
+          //The current block always remains the same, except 
+          //for the CounterIndexes, which are incremented.
+          this.X = FromUI32(ChachaCore(this.Rounds, this.CurrentBlock));
+          this.SetCounter();
+        }
+        result[i] = (byte)(this.X[this.Index] ^ bufferbytes[i]);
+        this.Index = (this.Index + 1) & 63;
+      }
+      fsout.Write(result);
+    }
   }
 
   private static void Verify(byte[] key, byte[] cipher, byte[] associat)
@@ -127,14 +161,14 @@ partial class ChaCha20
     if (verify) return;
 
     throw new CryptographicException(
-      $"Signature verification has failed!");
+      $"Tag-Signature verification has failed!");
   }
 
   private static void Verify(byte[] key, Stream cipher, byte[] associat)
   {
     cipher.Position = 0;
     var expect = new byte[TAG_SIZE];
-    cipher.ChunkReader(expect, 0, expect.Length); 
+    cipher.ChunkReader(expect, 0, expect.Length);
 
     cipher.Position = TAG_SIZE;
     var tag = ToTag(key, cipher, associat);
@@ -143,7 +177,7 @@ partial class ChaCha20
     if (verify) return;
 
     throw new CryptographicException(
-      $"Signature verification has failed!");
+      $"Tag-Signature verification has failed!");
   }
 
 }

@@ -4,6 +4,17 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPublishable>False</IsPublishable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageLicenseFile>License</PackageLicenseFile>
+
+    <Authors>© exc-jdbi 2022</Authors>
+    <Product>© Chacha20 2022</Product>
+    <Company>© exc-jdbi 2022</Company>
+    <Copyright>© Chacha20 2022 is further modified by © exc-jdbi 2022</Copyright>
+    <IsPublishable>False</IsPublishable>
+    <Description>Implementation of Daniel J. Bernstein's ChaCha20 stream cipher.</Description>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
 </Project>

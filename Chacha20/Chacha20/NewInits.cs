@@ -22,7 +22,10 @@ partial class ChaCha20
   /// provided key and iv.
   /// </summary>
   /// <param name="key">The secret key to use for this initialize.</param>
-  /// <param name="iv">The iv (nonce) associated with this initialize, which should be a unique value for every operation with the same key.</param>
+  /// <param name="iv">
+  /// The iv (nonce) associated with this initialize, which should be a 
+  /// unique value for every operation with the same key.
+  /// </param>
   /// <param name="round">Default: 20.</param>
   /// <param name="tau_sigma">Default: Null.</param>
   public void NewInit(byte[] key, byte[] iv, int round = 20, byte[]? tau_sigma = null)
@@ -32,7 +35,7 @@ partial class ChaCha20
 
     this.Index = 0;
     this.Rounds = round;
-    this.CW = new[] { 0u, 0u, 0u };
+    this.CW = new uint[3];
     this.SetTauSigma(tau_sigma);
     this.SetCurrentBlock(key, iv);
   }

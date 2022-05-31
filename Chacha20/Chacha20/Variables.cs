@@ -14,7 +14,6 @@ partial class ChaCha20
   private const int BLOCK_SIZE = 64;
   public const int PLAIN_MIN_SIZE = 10;
   public const int TAU_SIGMA_SIZE = 16;
-  private const int ASSOCIATED_SIZE = 16;
   private const int CURRENTBLOCK_SIZE = 16;
 
   private byte[] X = Array.Empty<byte>();
