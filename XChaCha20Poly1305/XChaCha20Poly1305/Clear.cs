@@ -1,0 +1,44 @@
+﻿
+
+namespace exc.jdbi.Cryptography;
+partial class XChaCha20Poly1305Ex
+{
+
+  public void Reset()
+   => this.Clear();
+
+  private void Clear()
+  {
+    if (this.IsDisposed)
+      return;
+
+    this.Rounds = -1;
+
+    if (this.MChaCha20 is not null)
+      this.MChaCha20.Dispose();
+    if (this.MIv is not null)
+      Array.Clear(this.MIv, 0, this.MIv.Length);
+    if (this.MKey is not null)
+      Array.Clear(this.MKey, 0, this.MKey.Length);
+    if (this.CW != Array.Empty<uint>())
+      Array.Clear(this.CW, 0, this.CW.Length);
+
+    ClearParameters();
+
+    this.MChaCha20 = null;
+    this.CW = Array.Empty<uint>();
+    this.MIv = this.MKey = Array.Empty<byte>();
+  }
+
+  private void ClearParameters()
+  {
+    //Reset allocate from Heap
+    if (this.R is not null)
+      Array.Clear(this.R, 0, this.R.Length);
+    if (this.S is not null)
+      Array.Clear(this.S, 0, this.S.Length);
+    if (this.H is not null)
+      Array.Clear(this.H, 0, this.H.Length);
+    this.R = this.S = this.H = Array.Empty<uint>();
+  }
+}

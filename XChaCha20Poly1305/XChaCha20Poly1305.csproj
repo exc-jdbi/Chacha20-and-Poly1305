@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPublishable>False</IsPublishable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageLicenseFile>License</PackageLicenseFile>
+
+    <Authors>© exc-jdbi 2022</Authors>
+    <Product>© XChacha20Poly1305 2022</Product>
+    <Company>© exc-jdbi 2022</Company>
+    <Copyright>© XChacha20Poly1305 2022 is further modified by © exc-jdbi 2022</Copyright> 
+    <Description>A Modification of Implementation of Daniel J. Bernstein's ChaCha20 and Poly1305 stream cipher.</Description>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+</Project>
