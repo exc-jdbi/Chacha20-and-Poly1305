@@ -9,7 +9,7 @@ namespace exc.jdbi.Cryptography;
 /// <see href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha-03"></see>
 /// <para>further modified by © exc-jdbi 2022</para>
 /// </summary>
-public partial class XChaCha20Poly1305Ex : IDisposable
+public sealed partial class XChaCha20Poly1305Ex : IDisposable
 {
 
   /// <summary>
@@ -31,7 +31,7 @@ public partial class XChaCha20Poly1305Ex : IDisposable
   => this.NewInit(key, round);
 
 
-  protected virtual void Dispose(bool disposing)
+  private void Dispose(bool disposing)
   {
     if (!this.IsDisposed)
     {
