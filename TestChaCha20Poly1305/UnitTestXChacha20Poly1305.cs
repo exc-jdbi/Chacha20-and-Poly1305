@@ -11,8 +11,8 @@ internal class UnitTestXChacha20Poly1305
 {
   public static void StartUnitTest()
   {
-    Console.WriteLine($"{nameof(UnitTestChacha20Poly1305)}");
-    Console.WriteLine($"************************");
+    Console.WriteLine($"{nameof(UnitTestXChacha20Poly1305)}");
+    Console.WriteLine($"*************************");
     Console.WriteLine();
 
     var rounds = 10_000;
